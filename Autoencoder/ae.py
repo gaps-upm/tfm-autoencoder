@@ -3,16 +3,19 @@ import pickle
 
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Conv2D, ReLU, BatchNormalization, \
-    Flatten, Dense, Reshape, Conv2DTranspose, Activation
+    Flatten, Dense, Reshape, Conv2DTranspose, Activation, Lambda
 from tensorflow.keras import backend as K
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
 import numpy as np
+import tensorflow as tf
+
+tf.compat.v1.disable_eager_execution()
 
 
-class Autoencoder:
+class VAE:
     """
-    Autoencoder represents a Deep Convolutional autoencoder architecture with
+    VAE represents a Deep Convolutional variational autoencoder architecture with
     mirrored encoder and decoder components.
     """
 
@@ -63,15 +66,25 @@ class Autoencoder:
     def load_weights(self, weights_path):
         self.model.load_weights(weights_path)
 
+    def reconstruct(self, images):
+        latent_representations = self.encoder.predict(images)
+        reconstructed_images = self .decoder(latent_representations)
+        return reconstructed_images, latent_representations
+
     @classmethod
     def load(cls, save_folder="."):
         parameters_path = os.path.join(save_folder, "parameters.pkl")
         with open(parameters_path, "rb") as f:
             parameters = pickle.load(f)
-        autoencoder = Autoencoder(*parameters)
+        autoencoder = VAE(*parameters)
         weights_path = os.path.join(save_folder, "weights.h5")
         autoencoder.load_weights(weights_path)
         return autoencoder
+
+    def _calculate_reconstruction_loss(self, y_target, y_predicted):
+        error = y_target - y_predicted
+        reconstruction_loss = K.mean(K.square(error), axis=[1, 2, 3])
+        return reconstruction_loss
 
     def _create_folder_if_it_doesnt_exist(self, folder):
         if os.path.exists(folder):
@@ -191,15 +204,26 @@ class Autoencoder:
         return x
 
     def _add_bottleneck(self, x):
-        """Flatten data and add bottleneck (Dense layer)."""
+        """Flatten data and add bottleneck with Gaussian sampling (Dense layer)."""
         self._shape_before_bottleneck = K.int_shape(x)[1:]
         x = Flatten()(x)
-        x = Dense(self.latent_space_dim, name="encoder_output")(x)
+        self.mu = Dense(self.latent_space_dim, name="mu")(x)
+        self.log_variance = Dense(self.latent_space_dim,
+                                  name="log_variance")(x)
+
+        def sample_point_from_normal_distribution(args):
+            mu, log_variance = args
+            epsilon = K.random_normal(shape=K.shape(self.mu), mean=0., stdev=1.)
+            sampled_point = mu + K.exp(log_variance/2) * epsilon
+            return sampled_point
+
+        x = Lambda(sample_point_from_normal_distribution,
+                   name="encoder_output")([self.mu, self.log_variance])
         return x
 
 
 if __name__ == "__main__":
-    autoencoder = Autoencoder(
+    autoencoder = VAE(
         input_shape=(28, 28, 1),
         conv_filters=(32, 64, 64, 64),
         conv_kernels=(3, 3, 3, 3),
