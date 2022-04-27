@@ -10,13 +10,14 @@ from tensorflow.keras.losses import MeanSquaredError
 import numpy as np
 import tensorflow as tf
 
+
 tf.compat.v1.disable_eager_execution()
 
 
 class VAE:
     """
-    VAE represents a Deep Convolutional variational autoencoder architecture with
-    mirrored encoder and decoder components.
+    VAE represents a Deep Convolutional variational autoencoder architecture
+    with mirrored encoder and decoder components.
     """
 
     def __init__(self,
@@ -30,6 +31,7 @@ class VAE:
         self.conv_kernels = conv_kernels # [3, 5, 3]
         self.conv_strides = conv_strides # [1, 2, 2]
         self.latent_space_dim = latent_space_dim # 2
+        self.reconstruction_loss_weight = 1000
 
         self.encoder = None
         self.decoder = None
@@ -48,8 +50,10 @@ class VAE:
 
     def compile(self, learning_rate=0.0001):
         optimizer = Adam(learning_rate=learning_rate)
-        mse_loss = MeanSquaredError()
-        self.model.compile(optimizer=optimizer, loss=mse_loss)
+        self.model.compile(optimizer=optimizer,
+                           loss=self._calculate_combined_loss,
+                           metrics=[self._calculate_reconstruction_loss,
+                                    self._calculate_kl_loss])
 
     def train(self, x_train, batch_size, num_epochs):
         self.model.fit(x_train,
@@ -68,7 +72,7 @@ class VAE:
 
     def reconstruct(self, images):
         latent_representations = self.encoder.predict(images)
-        reconstructed_images = self .decoder(latent_representations)
+        reconstructed_images = self.decoder.predict(latent_representations)
         return reconstructed_images, latent_representations
 
     @classmethod
@@ -81,13 +85,25 @@ class VAE:
         autoencoder.load_weights(weights_path)
         return autoencoder
 
+    def _calculate_combined_loss(self, y_target, y_predicted):
+        reconstruction_loss = self._calculate_reconstruction_loss(y_target, y_predicted)
+        kl_loss = self._calculate_kl_loss(y_target, y_predicted)
+        combined_loss = self.reconstruction_loss_weight * reconstruction_loss\
+                                                         + kl_loss
+        return combined_loss
+
     def _calculate_reconstruction_loss(self, y_target, y_predicted):
         error = y_target - y_predicted
         reconstruction_loss = K.mean(K.square(error), axis=[1, 2, 3])
         return reconstruction_loss
 
+    def _calculate_kl_loss(self, y_target, y_predicted):
+        kl_loss = -0.5 * K.sum(1 + self.log_variance - K.square(self.mu) -
+                               K.exp(self.log_variance), axis=1)
+        return kl_loss
+
     def _create_folder_if_it_doesnt_exist(self, folder):
-        if os.path.exists(folder):
+        if not os.path.exists(folder):
             os.makedirs(folder)
 
     def _save_parameters(self, save_folder):
@@ -204,7 +220,9 @@ class VAE:
         return x
 
     def _add_bottleneck(self, x):
-        """Flatten data and add bottleneck with Gaussian sampling (Dense layer)."""
+        """Flatten data and add bottleneck with Guassian sampling (Dense
+        layer).
+        """
         self._shape_before_bottleneck = K.int_shape(x)[1:]
         x = Flatten()(x)
         self.mu = Dense(self.latent_space_dim, name="mu")(x)
@@ -213,8 +231,9 @@ class VAE:
 
         def sample_point_from_normal_distribution(args):
             mu, log_variance = args
-            epsilon = K.random_normal(shape=K.shape(self.mu), mean=0., stdev=1.)
-            sampled_point = mu + K.exp(log_variance/2) * epsilon
+            epsilon = K.random_normal(shape=K.shape(self.mu), mean=0.,
+                                      stddev=1.)
+            sampled_point = mu + K.exp(log_variance / 2) * epsilon
             return sampled_point
 
         x = Lambda(sample_point_from_normal_distribution,

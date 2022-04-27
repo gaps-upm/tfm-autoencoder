@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ae import Autoencoder
+from autoencoder import VAE
 from train import load_mnist
 
 
@@ -16,11 +16,11 @@ def plot_reconstructed_images(images, reconstructed_images):
     fig = plt.figure(figsize=(15, 3))
     num_images = len(images)
     for i, (image, reconstructed_image) in enumerate(zip(images, reconstructed_images)):
-        image = np.squeeze(image)
+        image = image.squeeze()
         ax = fig.add_subplot(2, num_images, i + 1)
         ax.axis("off")
         ax.imshow(image, cmap="gray_r")
-        reconstructed_image = np.squeeze(reconstructed_image)
+        reconstructed_image = reconstructed_image.squeeze()
         ax = fig.add_subplot(2, num_images, i + num_images + 1)
         ax.axis("off")
         ax.imshow(reconstructed_image, cmap="gray_r")
@@ -40,7 +40,7 @@ def plot_images_encoded_in_latent_space(latent_representations, sample_labels):
 
 
 if __name__ == "__main__":
-    autoencoder = Autoencoder.load("model")
+    autoencoder = VAE.load("model")
     x_train, y_train, x_test, y_test = load_mnist()
 
     num_sample_images_to_show = 8
