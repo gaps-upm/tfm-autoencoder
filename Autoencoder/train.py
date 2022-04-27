@@ -1,4 +1,4 @@
-from tensorflow.keras.datasets import mnist
+from keras.datasets import mnist
 
 from autoencoder import VAE
 
@@ -28,7 +28,7 @@ def train(x_train, learning_rate, batch_size, epochs):
         latent_space_dim=2
     )
     autoencoder.summary()
-    autoencoder.compile(learning_rate)
+    autoencoder.compile(LEARNING_RATE)
     autoencoder.train(x_train, batch_size, epochs)
     return autoencoder
 
