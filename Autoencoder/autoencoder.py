@@ -52,8 +52,9 @@ class VAE:
         optimizer = Adam(learning_rate=learning_rate)
         self.model.compile(optimizer=optimizer,
                            loss=self._calculate_combined_loss,
-                           metrics=[self._calculate_reconstruction_loss,
-                                    self._calculate_kl_loss])
+                           metrics=['MeanSquaredError', 'KLDivergence'])
+                                    ##[self._calculate_reconstruction_loss,
+                                    ##self._calculate_kl_loss])
 
     def train(self, x_train, batch_size, num_epochs):
         self.model.fit(x_train,

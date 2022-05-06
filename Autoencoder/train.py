@@ -28,7 +28,7 @@ def train(x_train, learning_rate, batch_size, epochs):
         latent_space_dim=2
     )
     autoencoder.summary()
-    autoencoder.compile(LEARNING_RATE)
+    autoencoder.compile(learning_rate)
     autoencoder.train(x_train, batch_size, epochs)
     return autoencoder
 
