@@ -94,6 +94,7 @@ class Saver:
     def save_feature(self, feature, file_path):
         save_path = self._generate_save_path(file_path)
         np.save(save_path, feature)
+        return save_path
 
     def save_min_max_values(self, min_max_values):
         save_path = os.path.join(self.min_max_values_save_dir,
@@ -180,9 +181,9 @@ if __name__ == "__main__":
     SAMPLE_RATE = 22050
     MONO = True
 
-    SPECTROGRAMS_SAVE_DIR = "C:/Users/jaime.lopez/Desktop/MUIT/TFM/datasets/fsdd/spectrograms/"
-    MIN_MAX_VALUES_SAVE_DIR = "C:/Users/jaime.lopez/Desktop/MUIT/TFM/datasets/fsdd/"
-    FILES_DIR = "C:/Users/jaime.lopez/Desktop/MUIT/TFM/datasets/fsdd/audio/"
+    SPECTROGRAMS_SAVE_DIR = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms/"
+    MIN_MAX_VALUES_SAVE_DIR = "/home/jaimelopez/TFM/datasets/fsdd/"
+    FILES_DIR = "/home/jaimelopez/TFM/datasets/fsdd/audio/"
 
     # instantiate all objects
     loader = Loader(SAMPLE_RATE, DURATION, MONO)
