@@ -29,7 +29,8 @@ def train(x_train, learning_rate, batch_size, epochs):
         conv_filters=(512, 256, 128, 64, 32),
         conv_kernels=(3, 3, 3, 3, 3),
         conv_strides=(2, 2, 2, 2, (2, 1)),
-        latent_space_dim=128
+        #latent_space_dim=128
+        latent_space_dim=2
     )
     autoencoder.summary()
     autoencoder.compile(learning_rate)
