@@ -76,6 +76,20 @@ class VAE:
         reconstructed_images = self.decoder.predict(latent_representations)
         return reconstructed_images, latent_representations
 
+    def reconstruct_on_latent(self, latent_representation):
+        """
+        Uses the decoder part of the autoencoder to get the reconstructed images.
+        Parameters
+        ----------
+        latent_representation : [np.Array]
+            list of np.Array
+        Returns
+        -------
+        the recontructed images
+        """
+        reconstructed_images = self.decoder.predict(latent_representation)
+        return reconstructed_images
+
     @classmethod
     def load(cls, save_folder="."):
         parameters_path = os.path.join(save_folder, "parameters.pkl")
