@@ -1,4 +1,5 @@
 import librosa
+import mclt_griffinlim
 
 from preprocess import MinMaxNormaliser
 
@@ -30,7 +31,14 @@ class SoundGenerator:
             # log spectrogram -> spectrogram
             spec = librosa.db_to_amplitude(denorm_log_spec)
             # apply Griffin-Lim
-            signal = librosa.istft(spec, hop_length=self.hop_length)
+            # 1) For STFT transform:
+            #signal = librosa.griffinlim(spec, hop_length=self.hop_length)
             # append signal to "signals"
-            signals.append(signal)
+            # signals.append(signal)
+
+            # 2) For MCLT transform:
+            signal_mclt = mclt_griffinlim.mclt_griffinlim(spec, frame_length=1024)
+            # append mclt signal to "signals"
+            signals.append(signal_mclt)
+
         return signals

@@ -10,8 +10,8 @@ from train import SPECTROGRAMS_PATH
 
 
 HOP_LENGTH = 256
-SAVE_DIR_ORIGINAL = "samples/original/"
-SAVE_DIR_GENERATED = "samples/generated/"
+SAVE_DIR_ORIGINAL = "/home/jaimelopez/TFM/samples/original/"
+SAVE_DIR_GENERATED = "/home/jaimelopez/TFM/samples/generated/"
 MIN_MAX_VALUES_PATH = "/home/jaimelopez/TFM/datasets/fsdd/min_max_values.pkl"
 
 def load_fsdd(spectrograms_path):
@@ -20,7 +20,7 @@ def load_fsdd(spectrograms_path):
     for root, _, file_names in os.walk(spectrograms_path):
         for file_name in file_names:
             file_path = os.path.join(root, file_name)
-            spectrogram = np.load(file_path) # (n_bins, n_frames, 1)
+            spectrogram = np.load(file_path, allow_pickle=True) # (n_bins, n_frames, 1)
             x_train.append(spectrogram)
             file_paths.append(file_path)
     x_train = np.array(x_train)

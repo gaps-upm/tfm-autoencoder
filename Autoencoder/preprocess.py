@@ -8,6 +8,7 @@ PreprocessingPipeline
 """
 import os
 import pickle
+import mdct
 
 import librosa
 import numpy as np
@@ -58,11 +59,20 @@ class LogSpectrogramExtractor:
         self.hop_length = hop_length
 
     def extract(self, signal):
-        stft = librosa.stft(signal,
-                            n_fft=self.frame_size,
-                            hop_length=self.hop_length)[:-1]
-        spectrogram = np.abs(stft)
-        log_spectrogram = librosa.amplitude_to_db(spectrogram)
+        # 1) For the STFT transform:
+        # stft = librosa.stft(signal,
+        #                     n_fft=self.frame_size,
+        #                     hop_length=self.hop_length)[:-1]
+        # spectrogram = np.abs(stft)
+        # log_spectrogram = librosa.amplitude_to_db(spectrogram)
+
+        # 2) For the MCLT transform
+        mclt = mdct.fast.mclt(signal,
+                              framelength=self.frame_size,
+                              hopsize=self.hop_length)[:, :-1]
+
+        spectrogram_mclt, _ = librosa.magphase(mclt)
+        log_spectrogram = librosa.amplitude_to_db(spectrogram_mclt)
         return log_spectrogram
 
 
@@ -97,8 +107,13 @@ class Saver:
         return save_path
 
     def save_min_max_values(self, min_max_values):
+        # Min-max values for STFT
+        # save_path = os.path.join(self.min_max_values_save_dir,
+        #                          "min_max_values.pkl")
+
+        # Min-max values for MCLT
         save_path = os.path.join(self.min_max_values_save_dir,
-                                 "min_max_values.pkl")
+                                 "min_max_values_mclt.pkl")
         self._save(min_max_values, save_path)
 
     @staticmethod
@@ -181,9 +196,15 @@ if __name__ == "__main__":
     SAMPLE_RATE = 22050
     MONO = True
 
-    SPECTROGRAMS_SAVE_DIR = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms/"
+    # Paths for STFT
+    # SPECTROGRAMS_SAVE_DIR = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms/"
+    # MIN_MAX_VALUES_SAVE_DIR = "/home/jaimelopez/TFM/datasets/fsdd/"
+    # FILES_DIR = "/home/jaimelopez/TFM/datasets/fsdd/audio/"
+
+    # Paths for MCLT
+    SPECTROGRAMS_SAVE_DIR = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train_mclt/"
     MIN_MAX_VALUES_SAVE_DIR = "/home/jaimelopez/TFM/datasets/fsdd/"
-    FILES_DIR = "/home/jaimelopez/TFM/datasets/fsdd/audio/"
+    FILES_DIR = "/home/jaimelopez/TFM/datasets/fsdd/audios_train/"
 
     # instantiate all objects
     loader = Loader(SAMPLE_RATE, DURATION, MONO)

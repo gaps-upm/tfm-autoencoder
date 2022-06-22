@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="jaimelopez@138.4.34.187:22 (2)" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="jaimelopez@138.4.34.187:22 (7)" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="jaimelopez@138.4.34.187:22">
@@ -14,6 +14,41 @@
         <serverdata>
           <mappings>
             <mapping deploy="/tmp/pycharm_project_200" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="jaimelopez@138.4.34.187:22 (3)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="jaimelopez@138.4.34.187:22 (4)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/jaimelopez/TFM" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="jaimelopez@138.4.34.187:22 (5)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/jaimelopez/TFM" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="jaimelopez@138.4.34.187:22 (6)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/jaimelopez/TFM/Autoencoder" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="jaimelopez@138.4.34.187:22 (7)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/jaimelopez/TFM" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
