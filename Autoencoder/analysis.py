@@ -8,30 +8,32 @@ import librosa
 import soundfile as sf
 import scipy.stats as st
 
-# from autoencoder import VAE
-from autoencoder_v2 import VAE_v2
+from autoencoder import VAE
+# from autoencoder_v2 import VAE_v2
 from sklearn import preprocessing
+from sklearn.metrics import mean_squared_error
 from train import load_fsdd
 from soundgenerator import SoundGenerator
 
 HOP_LENGTH = 256
+SAMPLE_RATE = 22050
 # 1) STFT case
-# TEST_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_test"
-# TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train"
-# LATENT_SPACE_SAVE_PATH = "/home/jaimelopez/TFM/datasets/fsdd/latent_space"
-# SAVE_DIR_GENERATED = "/home/jaimelopez/TFM/datasets/fsdd/STFT_100/"
-
-# 2) MCLT case
-# TEST_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_test_mclt"
-# TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train_mclt"
-# LATENT_SPACE_SAVE_PATH = "/home/jaimelopez/TFM/datasets/fsdd/latent_space"
-# SAVE_DIR_GENERATED = "/home/jaimelopez/TFM/datasets/fsdd/"
-
-# 3) Exponential case
 TEST_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_test"
 TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train"
 LATENT_SPACE_SAVE_PATH = "/home/jaimelopez/TFM/datasets/fsdd/latent_space"
-SAVE_DIR_GENERATED = "/home/jaimelopez/TFM/datasets/fsdd/latent_space_samples_exp/"
+SAVE_DIR_GENERATED = "/home/jaimelopez/TFM/datasets/fsdd/STFT_100/"
+
+# 2) MCLT case
+TEST_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_test_mclt"
+TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train_mclt"
+LATENT_SPACE_SAVE_PATH = "/home/jaimelopez/TFM/datasets/fsdd/latent_space"
+SAVE_DIR_GENERATED = "/home/jaimelopez/TFM/datasets/fsdd/"
+
+# 3) Exponential case
+# TEST_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_test"
+# TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train"
+# LATENT_SPACE_SAVE_PATH = "/home/jaimelopez/TFM/datasets/fsdd/latent_space"
+# SAVE_DIR_GENERATED = "/home/jaimelopez/TFM/datasets/fsdd/latent_space_samples_exp/"
 
 def parse_materials_name(val):
     if val == "01":
@@ -57,19 +59,34 @@ def select_images(images, labels, num_images=10):
 
 
 def plot_reconstructed_images(images, reconstructed_images):
-    fig = plt.figure(figsize=(15, 3))
+    fig = plt.figure(figsize=(15, 15))
     num_images = len(images)
     for i, (image, reconstructed_image) in enumerate(zip(images, reconstructed_images)):
         image = image.squeeze()
         ax = fig.add_subplot(2, num_images, i + 1)
-        ax.axis("off")
-        ax.imshow(image, cmap="gray_r")
+        img = librosa.display.specshow(image, y_axis='log', sr=SAMPLE_RATE, hop_length=HOP_LENGTH, x_axis='time')
+        ax.set(title='Original: Log-frequency power spectrogram')
+        ax.label_outer()
+        fig.colorbar(img, ax=ax, format="%+2.f dB")
+
         reconstructed_image = reconstructed_image.squeeze()
         ax = fig.add_subplot(2, num_images, i + num_images + 1)
-        ax.axis("off")
-        ax.imshow(reconstructed_image, cmap="gray_r")
+        img = librosa.display.specshow(reconstructed_image, y_axis='log', sr=SAMPLE_RATE, hop_length=HOP_LENGTH, x_axis='time')
+        ax.set(title='Reconstructed: Log-frequency power spectrogram')
+        ax.label_outer()
+        fig.colorbar(img, ax=ax, format="%+2.f dB")
     plt.show()
 
+def compute_mse(images, reconstructed_images):
+    errors = []
+    for i, (image, reconstructed_image) in enumerate(zip(images, reconstructed_images)):
+        image = image.squeeze()
+        reconstructed_image = reconstructed_image.squeeze()
+        error = mean_squared_error(image, reconstructed_image, squared=False, multioutput='uniform_average')
+        errors.append(error)
+    array_errors = np.array(errors)
+    MSE = np.mean(array_errors)
+    return MSE
 
 def plot_images_encoded_in_latent_space(latent_representations, sample_labels):
     plt.figure(figsize=(10, 10))
@@ -224,31 +241,35 @@ def get_best_distribution(data):
 
 
 if __name__ == "__main__":
-    # vae = VAE.load("model")
-    vae = VAE_v2.load("model")
+    vae = VAE.load("model")
+    # vae = VAE_v2.load("model")
     x_test, file_paths = load_fsdd(TEST_PATH)
-    # x_train, file_paths = load_fsdd(TRAIN_PATH)
-
-    # Find the better fitted distribution to the dataset
-    data_test = x_test[0:]
-    get_best_distribution(data=data_test)
+    x_train, file_paths = load_fsdd(TRAIN_PATH)
 
     # Get the file names from the test dataset and extract labels and mappings.
     file_names = get_files(file_paths)
     labels, mappings = parse_labels(file_names, division="herramienta")
 
-    # # Comparison of original spectrograms against reconstructed ones
-    # num_sample_images_to_show = 8
-    # sample_images, _ = select_images(x_test, labels, num_sample_images_to_show)
-    # # sample_images, _ = select_images(x_train, labels, num_sample_images_to_show)
-    # reconstructed_images, _ = vae.reconstruct(sample_images)
-    # plot_reconstructed_images(sample_images, reconstructed_images)
-    #
-    # # Obtain the latent space representations and plot the latent space
+    # Comparison of original spectrograms against reconstructed ones
+    num_sample_images_to_show = 1
+    sample_images, _ = select_images(x_test, labels, num_sample_images_to_show)
+    # sample_images, _ = select_images(x_train, labels, num_sample_images_to_show)
+    reconstructed_images, _ = vae.reconstruct(sample_images)
+    plot_reconstructed_images(sample_images, reconstructed_images)
+
+    # Obtention of the MSE
+    x_test_reconstructed, _ = vae.reconstruct(x_test)
+    MSE = compute_mse(x_test, x_test_reconstructed)
+    print("MSE: ",MSE)
+
+    # Obtain the latent space representations and plot the latent space
     # _, latent_representations = vae.reconstruct(x_test)
-    # # _, latent_representations = vae.reconstruct(x_train)
-    # # np.mean(latent_representations)
+    _, latent_representations = vae.reconstruct(x_train)
     # plot_images_encoded_in_latent_space(latent_representations, labels, mappings, type="")
+
+    # Find the better fitted distribution to the dataset
+    data_test = latent_representations[:,1]
+    get_best_distribution(data=data_test)
 
     # # Get all the possible values of samples in a 2D latent space and reconstruct them on latent space
     # latent_samples, latent_file_names = sample_latent_space(step=1.0)

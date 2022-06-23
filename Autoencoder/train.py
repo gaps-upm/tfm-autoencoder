@@ -2,19 +2,19 @@ import os
 
 import numpy as np
 
-# from autoencoder import VAE
-from autoencoder_v2 import VAE_v2
+from autoencoder import VAE
+# from autoencoder_v2 import VAE_v2
 
 
 LEARNING_RATE = 0.0005
 BATCH_SIZE = 64
 EPOCHS = 150
 # 1) STFT case
-SPECTROGRAMS_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms"
-TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train"
+# SPECTROGRAMS_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms"
+# TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train"
 # 2) MCLT case
-# SPECTROGRAMS_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_mclt"
-# TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train_mclt"
+SPECTROGRAMS_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_mclt"
+TRAIN_PATH = "/home/jaimelopez/TFM/datasets/fsdd/spectrograms_train_mclt"
 
 def load_fsdd(spectrograms_path):
     x_train = []
@@ -30,7 +30,7 @@ def load_fsdd(spectrograms_path):
     return x_train, file_paths
 
 def train(x_train, learning_rate, batch_size, epochs):
-    autoencoder = VAE_v2(
+    autoencoder = VAE(
         input_shape=(256, 64, 1),
         conv_filters=(512, 256, 128, 64, 32),
         conv_kernels=(3, 3, 3, 3, 3),
